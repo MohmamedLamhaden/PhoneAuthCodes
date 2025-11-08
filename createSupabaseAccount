@@ -13,48 +13,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 Future<String?> createSupabaseAccount(
   String? email,
   String? password,
-  String? confirmPassword,
 ) async {
   // Add your function code here!
-  // === Local validation first ===
-  if (email == null || email.trim().isEmpty) {
-    return 'Please enter your email.';
-  }
-  final emailRegex = RegExp(r'^[\w\.-]+@[\w\.-]+\.\w+$');
-  if (!emailRegex.hasMatch(email.trim())) {
-    return 'Please enter a valid email address.';
-  }
-
-  if (password == null || password.isEmpty) {
-    return 'Please enter a password.';
-  }
-  if (password.length < 6) {
-    return 'Password must be at least 6 characters long.';
-  }
-  if (confirmPassword == null || confirmPassword.isEmpty) {
-    return 'Please confirm your password.';
-  }
-  if (password != confirmPassword) {
-    return 'Passwords do not match.';
-  }
-
-  // === Try to sign up the user ===
   try {
     final supabase = Supabase.instance.client;
-
-    // This sends a confirmation email but does not wait for verification
-    await supabase.auth.signUp(
-      email: email.trim(),
-      password: password,
+    final response = await supabase.auth.signUp(
+      email: email!.trim(),
+      password: password!,
     );
 
-    // If no error was thrown, we assume it succeeded
-    return null; // means success
+    if (response.user != null) {
+      return response.user!.id; // ✅ Return user ID
+    } else {
+      return 'Failed to create account.';
+    }
   } on AuthException catch (e) {
-    // Supabase-specific auth error
-    return e.message; // user-friendly message from Supabase
+    return e.message;
   } catch (e) {
-    // Any unexpected error
     return 'Something went wrong. Please try again.';
   }
 }
